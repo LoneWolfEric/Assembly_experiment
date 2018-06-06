@@ -1,7 +1,18 @@
 DATA    SEGMENT  
         NUM1 DW 300,250,280,240,260
-        RESULT DW 0,0,0,0,0
-        COUNTER DB 0
+        ;RESULT DW 0,0,0,0,0
+        ;COUNTER DB 0
+        INPUT_NUM DW 0              ;输入第几个数  
+        INPUT_NUM_COUNTER DW 0      ;用于计数
+        DIGIT DW 0                  ;输入几位数（暂存）
+        WEIGHT DB 0                 ;权重
+        TEMP_SUM DW 0               ;临时和
+        
+        INPUT_NUM_STRING DB 'How many number do you want to input:$'    ;提示输入多少个数字
+        START_INPUT DB 'You can input now:(if your input less than 100,you can input space to stop input)$'
+        INPUT_SHOW DB 'What you have just input are showed below:$' 
+        SORTED_RESULT DB 'the sorted version is showed below:$' 
+        
 DATA    ENDS   
 
 STACK   SEGMENT STACK      ; 堆栈段的定义
@@ -18,209 +29,76 @@ START:  MOV AX,DATA
         MOV CX,0 
         MOV BX,0
         MOV SI,0
-        
-        
-        MOV BL,10
-INPUT:  MOV CX,13
-IN_LP:  MOV AH,01
+          
+        MOV DX,OFFSET INPUT_NUM_STRING
+        MOV AH,09H
         INT 21H
-        CMP AL,0DH
+        
+        MOV AH,01
+        INT 21H
+        SUB AL,30H
+        
+        MOV AH,0
+        
+        MOV INPUT_NUM,AX
+        MOV INPUT_NUM_COUNTER,AX
+        
+        MOV DL,0DH               ;回车换行
+        MOV AH,02H
+        INT 21H
+        MOV DL,0AH
+        MOV AH,02H
+        INT 21H
+        
+        MOV DX,OFFSET START_INPUT
+        MOV AH,09H
+        INT 21H
+        
+NNM_LP: 
+        MOV AX,0
+        MOV DX,0
+        MOV CX,0 
+        MOV BX,0
+        MOV DIGIT,0
+        MOV WEIGHT,0
+        MOV TEMP_SUM,0
+          
+        MOV BL,10
+INPUT:  MOV CX,03
+IN_LP:  MOV AH,01
+        INT 21H 
+        MOV AH,0
+        CMP AL,20H
         JZ IN_DONE
         SUB AL,30H
         PUSH AX       
         LOOP IN_LP
 
-IN_DONE:MOV DX,CX
+IN_DONE:MOV DIGIT,CX
         MOV CX,3
-        SUB CX,DX
-        INC DX
+        SUB CX,DIGIT
+        ADD WEIGHT,1
         
 CAL_LP: POP AX
-        MUL DL
-        ADD SI,AX
-        AAA
-        PUSH AX
-        MOV AL,DL
+        MUL WEIGHT           ;设置权重
+        ADD TEMP_SUM,AX      ;加入到临时计算区
+        MOV AL,WEIGHT
         MUL BL
-        MOV DL,AL
-        POP AX
+        MOV WEIGHT,AL        ;更新新的权重
         LOOP CAL_LP       
         ;MOV AH,01
         ;INT 21H  
         ;SUB AL,30H          ;换算成数字
         ;ADD DL,AL           ;加到DL里
-        ;LOOP LP1
-        MOV DI,0
-        MOV [DI],SI
-            
-        MOV SI,0    
-            
-            
-            
-        
-        MOV BL,10
-INPUT1:  MOV CX,3
-IN_LP1:  MOV AH,01
-        INT 21H
-        CMP AL,0DH
-        JZ IN_DONE1
-        SUB AL,30H
-        PUSH AX       
-        LOOP IN_LP1
-
-IN_DONE1:MOV DX,CX
-        MOV CX,3
-        SUB CX,DX
-        INC DX
-        
-CAL_LP1: POP AX
-        MUL DL
-        ADD SI,AX
-        AAA
+        ;LOOP LP1 
         PUSH AX
-        MOV AL,DL
-        MUL BL
-        MOV DL,AL
-        POP AX
-        LOOP CAL_LP1       
-        ;MOV AH,01
-        ;INT 21H  
-        ;SUB AL,30H          ;换算成数字
-        ;ADD DL,AL           ;加到DL里
-        ;LOOP LP1
-        MOV DI,2
-        MOV [DI],SI
         
-        MOV SI,0
+        MOV AX,TEMP_SUM
+        MOV [SI],AX
+        ADD SI,2       
         
-
-        MOV BL,10
-INPUT2:  MOV CX,3
-IN_LP2:  MOV AH,01
-        INT 21H
-        CMP AL,0DH
-        JZ IN_DONE
-        SUB AL,30H
-        PUSH AX       
-        LOOP IN_LP2
-
-IN_DONE2:MOV DX,CX
-        MOV CX,3
-        SUB CX,DX
-        INC DX
-        
-CAL_LP2: POP AX
-        MUL DL
-        ADD SI,AX
-        AAA
-        PUSH AX
-        MOV AL,DL
-        MUL BL
-        MOV DL,AL
-        POP AX
-        LOOP CAL_LP2       
-        ;MOV AH,01
-        ;INT 21H  
-        ;SUB AL,30H          ;换算成数字
-        ;ADD DL,AL           ;加到DL里
-        ;LOOP LP1
-        MOV DI,4
-        MOV [DI],SI        
-        
-        MOV SI,0     
-             
-             
-        MOV BL,10
-INPUT3:  MOV CX,3
-IN_LP3:  MOV AH,01
-        INT 21H
-        CMP AL,0DH
-        JZ IN_DONE3
-        SUB AL,30H
-        PUSH AX       
-        LOOP IN_LP3
-
-IN_DONE3:MOV DX,CX
-        MOV CX,3
-        SUB CX,DX
-        INC DX
-        
-CAL_LP3: POP AX
-        MUL DL
-        ADD SI,AX
-        AAA
-        PUSH AX
-        MOV AL,DL
-        MUL BL
-        MOV DL,AL
-        POP AX
-        LOOP CAL_LP3       
-        ;MOV AH,01
-        ;INT 21H  
-        ;SUB AL,30H          ;换算成数字
-        ;ADD DL,AL           ;加到DL里
-        ;LOOP LP1
-        MOV DI,6
-        MOV [DI],SI        
-   
-        MOV SI,0
-   
-   
-        
-        
-        
-        MOV BL,10
-INPUT4:  MOV CX,3
-IN_LP4:  MOV AH,01
-        INT 21H
-        CMP AL,0DH
-        JZ IN_DONE4
-        SUB AL,30H
-        PUSH AX       
-        LOOP IN_LP4
-
-IN_DONE4:MOV DX,CX
-        MOV CX,3
-        SUB CX,DX
-        INC DX
-        
-CAL_LP4: POP AX
-        MUL DL
-        ADD SI,AX
-        AAA
-        PUSH AX
-        MOV AL,DL
-        MUL BL
-        MOV DL,AL
-        POP AX
-        LOOP CAL_LP4       
-        ;MOV AH,01
-        ;INT 21H  
-        ;SUB AL,30H          ;换算成数字
-        ;ADD DL,AL           ;加到DL里
-        ;LOOP LP1
-        MOV DI,8
-        MOV [DI],SI        
-             
-        MOV SI,0     
-                
-                
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        SUB INPUT_NUM_COUNTER,1
+        JNZ NNM_LP
         
         
         
@@ -232,11 +110,13 @@ CAL_LP4: POP AX
         INT 21H
         
         
+        MOV CX,INPUT_NUM
+        MOV SI,0 
         
+        MOV DX,OFFSET INPUT_SHOW
+        MOV AH,09H
+        INT 21H
         
-        
-        
-        MOV CX,5
 LP1:    MOV AX,[SI] 
         CALL SHOW
           
@@ -283,8 +163,12 @@ NO_CMP: DEC DI                   ;外循环的CX代理DI减一
         INT 21H
         
         
+        MOV DX,OFFSET SORTED_RESULT
+        MOV AH,09H
+        INT 21H
+        
+        MOV CX,INPUT_NUM
         MOV SI,0
-        MOV CX,5
 LP0:    MOV AX,[SI] 
         CALL SHOW
         ADD SI,2
@@ -318,6 +202,10 @@ SHOW:   PROC
         ADD DL,30H          ;输出个位
         MOV AH,02H
         INT 21H 
+        
+        MOV DL,20H
+        MOV AH,02H
+        INT 21H
       
         
         RET

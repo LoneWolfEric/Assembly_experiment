@@ -1,7 +1,11 @@
 DATA    SEGMENT  
         NUM1 DW 300,250,280,240,260
-        RESULT DW 0,0,0,0,0
-        COUNTER DB 0
+        ;RESULT DW 0,0,0,0,0
+        ;COUNTER DB 0
+        INPUT_NUM DW 5     ;输入第几个数
+        DIGIT DW 0         ;输入几位数（暂存）
+        WEIGHT DB 0        ;权重
+        TEMP_SUM DW 0      ;临时和
 DATA    ENDS   
 
 STACK   SEGMENT STACK      ; 堆栈段的定义
@@ -18,15 +22,56 @@ START:  MOV AX,DATA
         MOV CX,0 
         MOV BX,0
         MOV SI,0
+          
+        
+        
+NNM_LP: 
+        MOV AX,0
+        MOV DX,0
+        MOV CX,0 
+        MOV BX,0
+        MOV DIGIT,0
+        MOV WEIGHT,0
+        MOV TEMP_SUM,0
+          
+        MOV BL,10
+INPUT:  MOV CX,03
+IN_LP:  MOV AH,01
+        INT 21H 
+        MOV AH,0
+        CMP AL,0DH
+        JZ IN_DONE
+        SUB AL,30H
+        PUSH AX       
+        LOOP IN_LP
+
+IN_DONE:MOV DIGIT,CX
+        MOV CX,3
+        SUB CX,DIGIT
+        ADD WEIGHT,1
+        
+CAL_LP: POP AX
+        MUL WEIGHT           ;设置权重
+        ADD TEMP_SUM,AX      ;加入到临时计算区
+        MOV AL,WEIGHT
+        MUL BL
+        MOV WEIGHT,AL        ;更新新的权重
+        LOOP CAL_LP       
+        ;MOV AH,01
+        ;INT 21H  
+        ;SUB AL,30H          ;换算成数字
+        ;ADD DL,AL           ;加到DL里
+        ;LOOP LP1 
+        PUSH AX
+        
+        MOV AX,TEMP_SUM
+        MOV [SI],AX
+        ADD SI,2       
+        
+        SUB INPUT_NUM,1
+        JNZ NNM_LP
         
 
-        
-        
-        
-        
-        
-
-        
         
         MOV CX,5
 LP1:    MOV AX,[SI] 
